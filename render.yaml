@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: injuryguard-api
+    runtime: docker
+    rootDir: backend
+    repo: https://github.com/AsifKhan-001/InjuryGuard-AI
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: PORT
+        value: 8000
