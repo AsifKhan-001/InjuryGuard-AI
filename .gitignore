@@ -1,0 +1,29 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Node
+node_modules/
+frontend/node_modules/
+frontend/dist/
+
+# Model files (downloaded at build time)
+backend/models_data/
+
+# Large files
+*.mp4
+*.avi
+*.mov
