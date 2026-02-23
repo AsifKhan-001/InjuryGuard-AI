@@ -44,6 +44,27 @@ app.add_middleware(
 # ─── Routes ──────────────────────────────────────────────────────────────
 app.include_router(analysis_router)
 
+import os
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+frontend_dist = os.path.join(os.path.dirname(__file__), "..", "frontend", "dist")
+if os.path.isdir(frontend_dist):
+    app.mount("/assets", StaticFiles(directory=os.path.join(frontend_dist, "assets")), name="assets")
+    
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        if full_path.startswith("api/") or full_path.startswith("ws/"):
+            from fastapi import HTTPException
+            raise HTTPException(status_code=404, detail="Not Found")
+            
+        # Serve index.html for all non-API routes if the file isn't found
+        # (This is needed for React SPA routing)
+        path = os.path.join(frontend_dist, full_path)
+        if os.path.exists(path) and os.path.isfile(path):
+            return FileResponse(path)
+        return FileResponse(os.path.join(frontend_dist, "index.html"))
+
 
 @app.on_event("startup")
 async def startup():

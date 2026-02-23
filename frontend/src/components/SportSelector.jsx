@@ -1,8 +1,8 @@
 const SPORTS = [
-    { id: 'football', label: '⚽ Football', emoji: '⚽' },
-    { id: 'cricket', label: '🏏 Cricket', emoji: '🏏' },
-    { id: 'weightlifting', label: '🏋️ Weights', emoji: '🏋️' },
-    { id: 'generic', label: '🏃 Generic', emoji: '🏃' },
+    { id: 'football', label: 'Football', emoji: '⚽' },
+    { id: 'cricket', label: 'Cricket', emoji: '🏏' },
+    { id: 'weightlifting', label: 'Weights', emoji: '🏋️' },
+    { id: 'generic', label: 'Generic', emoji: '🏃' },
 ]
 
 export default function SportSelector({ sport, onChange }) {
@@ -15,6 +15,7 @@ export default function SportSelector({ sport, onChange }) {
                     onClick={() => onChange(s.id)}
                     title={s.label}
                 >
+                    <span style={{ marginRight: '4px' }}>{s.emoji}</span>
                     {s.label}
                 </button>
             ))}

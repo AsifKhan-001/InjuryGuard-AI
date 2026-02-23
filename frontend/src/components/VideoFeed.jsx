@@ -1,6 +1,6 @@
 import { useRef, useEffect, useCallback, useState } from 'react'
 
-export default function VideoFeed({ streaming, onToggle, onFrame, analysis, connected, style }) {
+export default function VideoFeed({ streaming, onToggle, onFrame, analysis, connected }) {
     const videoRef = useRef(null)
     const canvasRef = useRef(null)
     const intervalRef = useRef(null)
@@ -8,7 +8,6 @@ export default function VideoFeed({ streaming, onToggle, onFrame, analysis, conn
 
     // Start/stop camera
     useEffect(() => {
-        console.log("VideoFeed effect triggered. Streaming:", streaming)
         let subscribed = true
 
         if (streaming) {
@@ -25,26 +24,25 @@ export default function VideoFeed({ streaming, onToggle, onFrame, analysis, conn
     }, [streaming])
 
     const startCamera = async () => {
-        console.log("Attempting to start camera...")
         try {
             const stream = await navigator.mediaDevices.getUserMedia({
-                video: { width: 640, height: 480 }
+                video: {
+                    width: { ideal: 320 },
+                    height: { ideal: 240 },
+                    frameRate: { ideal: 15 },
+                }
             })
-            console.log("Camera access granted")
             if (videoRef.current) {
                 videoRef.current.srcObject = stream
                 await videoRef.current.play()
-                console.log("Video playing")
             }
             setHasCamera(true)
 
-            // Start frame capture loop
-            intervalRef.current = setInterval(captureAndSend, 150) // ~7 FPS
+            // Start frame capture loop — 80ms interval (~12 FPS)
+            intervalRef.current = setInterval(captureAndSend, 80)
         } catch (err) {
             console.error('Camera Error:', err)
-            // Fallback for demo if no camera
             setHasCamera(false)
-            alert("Camera failed to start. Please check permissions.")
         }
     }
 
@@ -66,17 +64,18 @@ export default function VideoFeed({ streaming, onToggle, onFrame, analysis, conn
         const canvas = canvasRef.current
         const ctx = canvas.getContext('2d')
 
-        canvas.width = video.videoWidth || 640
-        canvas.height = video.videoHeight || 480
+        canvas.width = video.videoWidth || 320
+        canvas.height = video.videoHeight || 240
 
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
 
-        const base64 = canvas.toDataURL('image/jpeg', 0.7)
+        // Lower quality JPEG for faster transfer
+        const base64 = canvas.toDataURL('image/jpeg', 0.5)
         onFrame(base64, canvas.width, canvas.height)
     }, [onFrame])
 
     return (
-        <div style={{ position: 'relative', width: '100%', height: '100%', background: '#000', ...style }}>
+        <div style={{ position: 'relative', width: '100%', height: '100%', background: '#000' }}>
             {streaming && hasCamera ? (
                 <>
                     <video
@@ -88,21 +87,46 @@ export default function VideoFeed({ streaming, onToggle, onFrame, analysis, conn
                             width: '100%',
                             height: '100%',
                             objectFit: 'contain',
-                            transform: 'scaleX(-1)' // Mirror effect
+                            transform: 'scaleX(-1)'
                         }}
                     />
-                    {/* Hidden canvas for frame capture */}
                     <canvas ref={canvasRef} style={{ display: 'none' }} />
                 </>
             ) : (
                 <div style={{
                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                    height: '100%', color: '#333'
+                    height: '100%', gap: '16px'
                 }}>
-                    <div style={{ fontSize: '4rem', marginBottom: '20px', opacity: 0.5 }}>🎥</div>
-                    <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--primary)', opacity: 0.8 }}>
-                        SYSTEM STANDBY
-                    </p>
+                    <div style={{
+                        width: '80px', height: '80px',
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, rgba(var(--primary-rgb), 0.08), rgba(var(--secondary-rgb), 0.05))',
+                        border: '1px solid rgba(var(--primary-rgb), 0.1)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '2rem',
+                        animation: 'float-subtle 3s ease-in-out infinite',
+                    }}>
+                        🎯
+                    </div>
+                    <div style={{
+                        fontFamily: 'var(--font-mono)',
+                        color: 'var(--primary)',
+                        opacity: 0.6,
+                        fontSize: '0.8rem',
+                        letterSpacing: '3px',
+                        textTransform: 'uppercase',
+                    }}>
+                        System Standby
+                    </div>
+                    <div style={{
+                        fontSize: '0.7rem',
+                        color: 'var(--text-dim)',
+                        maxWidth: '260px',
+                        textAlign: 'center',
+                        lineHeight: '1.6',
+                    }}>
+                        Press Initialize to start real-time injury detection
+                    </div>
                 </div>
             )}
         </div>

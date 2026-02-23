@@ -2,7 +2,8 @@
 Pose Detection Module
 =====================
 Uses MediaPipe Tasks PoseLandmarker to extract body keypoints, compute
-joint angles, detect posture asymmetry, and track fatigue degradation.
+joint angles, detect posture asymmetry, track fatigue degradation,
+and detect abnormal/dangerous joint positions.
 """
 
 import math
@@ -25,6 +26,9 @@ from config import (
     FATIGUE_ANGLE_DRIFT_THRESHOLD,
     FATIGUE_WINDOW_SECONDS,
     POSE_CONFIDENCE_THRESHOLD,
+    POSE_TRACKING_CONFIDENCE,
+    SAFE_ANGLE_RANGES,
+    SUDDEN_ANGLE_CHANGE_THRESHOLD,
 )
 
 # Path to the downloaded model file
@@ -41,6 +45,18 @@ class JointAngle:
 
 
 @dataclass
+class PostureAlert:
+    """Alert generated when a joint is in an abnormal/dangerous position."""
+    joint: str
+    side: str
+    message: str
+    severity: str  # "warning" or "danger"
+    angle: float
+    safe_min: float
+    safe_max: float
+
+
+@dataclass
 class PoseAnalysis:
     keypoints: Dict[str, Tuple[float, float, float]]
     joint_angles: List[JointAngle]
@@ -49,6 +65,7 @@ class PoseAnalysis:
     overall_pose_risk: float
     skeleton_connections: List[Tuple[str, str]]
     landmarks_normalized: list
+    posture_alerts: List[PostureAlert] = field(default_factory=list)
     issues: List[str] = field(default_factory=list)
 
 
@@ -97,11 +114,12 @@ class PoseDetector:
             running_mode=RunningMode.IMAGE,
             num_poses=1,
             min_pose_detection_confidence=POSE_CONFIDENCE_THRESHOLD,
-            min_tracking_confidence=POSE_CONFIDENCE_THRESHOLD,
+            min_tracking_confidence=POSE_TRACKING_CONFIDENCE,
         )
         self.landmarker = PoseLandmarker.create_from_options(options)
         self._baseline_angles: Optional[Dict[str, float]] = None
         self._angle_history: List[Tuple[float, Dict[str, float]]] = []
+        self._prev_angles: Dict[str, float] = {}  # For sudden change detection
         self._start_time = time.time()
 
     def analyze_frame(self, frame: np.ndarray) -> Optional[PoseAnalysis]:
@@ -121,8 +139,11 @@ class PoseDetector:
         asymmetry = self._detect_asymmetry(joint_angles)
         fatigue_score = self._compute_fatigue(joint_angles)
 
+        # Abnormal posture detection
+        posture_alerts = self._detect_abnormal_posture(joint_angles)
+
         issues = []
-        overall_risk = self._compute_pose_risk(joint_angles, asymmetry, fatigue_score, issues)
+        overall_risk = self._compute_pose_risk(joint_angles, asymmetry, fatigue_score, posture_alerts, issues)
 
         return PoseAnalysis(
             keypoints=keypoints,
@@ -132,12 +153,14 @@ class PoseDetector:
             overall_pose_risk=overall_risk,
             skeleton_connections=SKELETON_CONNECTIONS,
             landmarks_normalized=[(lm.x, lm.y, lm.z, lm.visibility) for lm in landmarks],
+            posture_alerts=posture_alerts,
             issues=issues,
         )
 
     def reset(self):
         self._baseline_angles = None
         self._angle_history.clear()
+        self._prev_angles.clear()
         self._start_time = time.time()
 
     def _extract_keypoints(self, landmarks) -> Dict[str, Tuple[float, float, float]]:
@@ -145,7 +168,9 @@ class PoseDetector:
         for idx, name in LANDMARK_NAMES.items():
             if idx < len(landmarks):
                 lm = landmarks[idx]
-                kp[name] = (lm.x, lm.y, lm.visibility)
+                # Skip very low visibility landmarks
+                if lm.visibility > 0.15:
+                    kp[name] = (lm.x, lm.y, lm.visibility)
         return kp
 
     @staticmethod
@@ -181,6 +206,67 @@ class PoseDetector:
                 asymmetry[joint] = round(diff, 1)
         return asymmetry
 
+    def _detect_abnormal_posture(self, angles: List[JointAngle]) -> List[PostureAlert]:
+        """Check each joint angle against safe ranges and detect sudden changes."""
+        alerts = []
+        current_angles = {}
+
+        for ja in angles:
+            key = f"{ja.name}_{ja.side}"
+            current_angles[key] = ja.angle
+
+            # Check safe range
+            if ja.name in SAFE_ANGLE_RANGES:
+                safe_min, safe_max = SAFE_ANGLE_RANGES[ja.name]
+
+                if ja.angle < safe_min:
+                    severity = "danger" if ja.angle < safe_min * 0.5 else "warning"
+                    side_label = f" ({ja.side})" if ja.side != "center" else ""
+                    msg = (
+                        f"⚠️ {ja.name.title()}{side_label} at {ja.angle:.0f}° — "
+                        f"below safe minimum {safe_min}°! Possible hyperextension or backward bend."
+                    )
+                    alerts.append(PostureAlert(
+                        joint=ja.name, side=ja.side, message=msg,
+                        severity=severity, angle=ja.angle,
+                        safe_min=safe_min, safe_max=safe_max,
+                    ))
+                    ja.is_safe = False
+                    ja.threshold_exceeded_by = safe_min - ja.angle
+
+                elif ja.angle > safe_max:
+                    severity = "danger" if ja.angle > safe_max + 10 else "warning"
+                    side_label = f" ({ja.side})" if ja.side != "center" else ""
+                    msg = (
+                        f"⚠️ {ja.name.title()}{side_label} at {ja.angle:.0f}° — "
+                        f"above safe maximum {safe_max}°! Unnatural position detected."
+                    )
+                    alerts.append(PostureAlert(
+                        joint=ja.name, side=ja.side, message=msg,
+                        severity=severity, angle=ja.angle,
+                        safe_min=safe_min, safe_max=safe_max,
+                    ))
+                    ja.is_safe = False
+                    ja.threshold_exceeded_by = ja.angle - safe_max
+
+            # Check for sudden angle change (potential injury moment)
+            if key in self._prev_angles:
+                change = abs(ja.angle - self._prev_angles[key])
+                if change > SUDDEN_ANGLE_CHANGE_THRESHOLD:
+                    side_label = f" ({ja.side})" if ja.side != "center" else ""
+                    msg = (
+                        f"🚨 Sudden {ja.name.title()}{side_label} movement! "
+                        f"Changed {change:.0f}° in one frame. Possible injury!"
+                    )
+                    alerts.append(PostureAlert(
+                        joint=ja.name, side=ja.side, message=msg,
+                        severity="danger", angle=ja.angle,
+                        safe_min=0, safe_max=0,
+                    ))
+
+        self._prev_angles = current_angles
+        return alerts
+
     def _compute_fatigue(self, angles: List[JointAngle]) -> float:
         now = time.time()
         angle_dict = {f"{a.name}_{a.side}": a.angle for a in angles}
@@ -210,7 +296,7 @@ class PoseDetector:
         fatigue = min(100.0, (avg_drift / FATIGUE_ANGLE_DRIFT_THRESHOLD) * 100)
         return round(fatigue, 1)
 
-    def _compute_pose_risk(self, angles, asymmetry, fatigue, issues) -> float:
+    def _compute_pose_risk(self, angles, asymmetry, fatigue, posture_alerts, issues) -> float:
         risk = 0.0
         for a in angles:
             if a.name == "knee" and a.angle < 40:
@@ -231,6 +317,14 @@ class PoseDetector:
         if fatigue > 50:
             risk += fatigue * 0.2
             issues.append(f"Fatigue detected: {fatigue:.0f}%")
+
+        # Add risk from posture alerts
+        for alert in posture_alerts:
+            if alert.severity == "danger":
+                risk += 30
+            else:
+                risk += 15
+            issues.append(alert.message)
 
         return min(100.0, round(risk, 1))
 

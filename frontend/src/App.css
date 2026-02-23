@@ -1,89 +1,178 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   InjuryGuard AI — App Layout & Component Styles
+   Premium glassmorphic layout with neon cyberpunk aesthetic
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ─── App Container ────────────────────────────────────────────────────── */
 .app-container {
     display: flex;
     flex-direction: column;
     height: 100vh;
-    background: radial-gradient(circle at center, #111 0%, #000 100%);
+    position: relative;
+    overflow: hidden;
 }
 
 /* ─── Header ───────────────────────────────────────────────────────────── */
 .header {
-    height: 60px;
+    height: 64px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 24px;
-    background: rgba(0, 0, 0, 0.8);
-    border-bottom: 1px solid var(--border-color);
-    backdrop-filter: blur(10px);
-    z-index: 10;
+    padding: 0 28px;
+    background: rgba(8, 8, 16, 0.75);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    z-index: 100;
+    position: relative;
+}
+
+.header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+            transparent 0%,
+            rgba(var(--primary-rgb), 0.3) 30%,
+            rgba(var(--secondary-rgb), 0.3) 70%,
+            transparent 100%);
 }
 
 .header-logo {
-    font-size: 24px;
-    margin-right: 12px;
-    text-shadow: 0 0 10px var(--primary);
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 14px;
 }
 
+.header-logo svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 0 8px rgba(var(--primary-rgb), 0.5));
+}
+
+
 .header h1 {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 700;
-    letter-spacing: 1px;
+    letter-spacing: 1.5px;
     text-transform: uppercase;
     margin: 0;
     color: var(--text-main);
+    font-family: var(--font-main);
 }
 
 .header h1 span {
-    color: var(--primary);
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 800;
 }
 
+/* ─── Status Badge ─────────────────────────────────────────────────────── */
 .status-badge {
-    padding: 6px 12px;
-    border-radius: 100px;
-    font-size: 0.8rem;
+    padding: 6px 0;
+    width: 100px;
+    text-align: center;
+    border-radius: var(--radius-pill);
+    font-size: 0.72rem;
     font-weight: 600;
     font-family: var(--font-mono);
-    background: #222;
-    border: 1px solid #333;
-    color: #666;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    color: var(--text-dim);
     text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all var(--transition-normal);
 }
 
 .status-badge.green {
     color: var(--primary);
-    border-color: var(--primary);
-    box-shadow: 0 0 10px var(--primary-glow);
+    border-color: rgba(var(--primary-rgb), 0.3);
+    background: rgba(var(--primary-rgb), 0.08);
+    box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.12);
 }
 
 .status-badge.yellow {
     color: var(--alert-yellow);
-    border-color: var(--alert-yellow);
-    box-shadow: 0 0 10px rgba(255, 189, 42, 0.4);
+    border-color: rgba(var(--alert-yellow-rgb), 0.3);
+    background: rgba(var(--alert-yellow-rgb), 0.08);
+    box-shadow: 0 0 20px rgba(var(--alert-yellow-rgb), 0.12);
 }
 
 .status-badge.red {
     color: var(--alert-red);
-    border-color: var(--alert-red);
-    box-shadow: 0 0 10px rgba(255, 42, 42, 0.4);
+    border-color: rgba(var(--alert-red-rgb), 0.3);
+    background: rgba(var(--alert-red-rgb), 0.08);
+    box-shadow: 0 0 20px rgba(var(--alert-red-rgb), 0.12);
+    animation: pulse-danger 2s ease-in-out infinite;
+}
+
+/* ─── Sport Selector ───────────────────────────────────────────────────── */
+.sport-selector {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.sport-btn {
+    padding: 6px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text-dim);
+    font-size: 0.72rem;
+    font-family: var(--font-main);
+    font-weight: 500;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+}
+
+.sport-btn:hover {
+    background: rgba(var(--primary-rgb), 0.06);
+    border-color: rgba(var(--primary-rgb), 0.15);
+    color: var(--text-secondary);
+    transform: translateY(-1px);
+}
+
+.sport-btn.active {
+    background: rgba(var(--primary-rgb), 0.1);
+    border-color: rgba(var(--primary-rgb), 0.35);
+    color: var(--primary);
+    box-shadow: 0 0 16px rgba(var(--primary-rgb), 0.12);
 }
 
 /* ─── Main Grid ────────────────────────────────────────────────────────── */
 .main-grid {
     flex: 1;
     display: grid;
-    grid-template-columns: 1fr 340px;
-    /* Video takes mostly 1fr, panel fixed 340px */
+    grid-template-columns: 1fr 360px;
     gap: 0;
     overflow: hidden;
 }
 
-/* Video Section */
+@media (max-width: 1024px) {
+    .main-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr auto;
+    }
+}
+
+/* ─── Video Section ────────────────────────────────────────────────────── */
 .video-section {
     position: relative;
     display: flex;
     flex-direction: column;
-    background: black;
-    border-right: 1px solid var(--border-color);
+    background: #000;
+    border-right: 1px solid rgba(255, 255, 255, 0.03);
     overflow: hidden;
 }
 
@@ -95,83 +184,392 @@
     position: relative;
 }
 
-.video-feed {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
-
 .video-overlay {
     position: absolute;
     top: 20px;
     left: 20px;
-    padding: 10px;
-    background: rgba(0, 0, 0, 0.6);
-    border: 1px solid var(--primary);
+    padding: 12px 16px;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(var(--primary-rgb), 0.15);
+    border-radius: var(--radius-sm);
     color: var(--primary);
     font-family: var(--font-mono);
-    font-size: 0.9rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
     pointer-events: none;
+    z-index: 10;
 }
 
-/* Metrics Bar (Overlay at bottom of video) */
+.video-overlay div {
+    pointer-events: auto;
+}
+
+/* ─── Metrics Bar (Redesigned) ───────────────────────────────────────────── */
 .metrics-bar {
     position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 80px;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.95), transparent);
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 800px;
+    background: rgba(18, 18, 28, 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-lg);
     display: flex;
-    justify-content: space-around;
     align-items: center;
-    padding: 0 20px 20px 20px;
+    justify-content: space-between;
+    padding: 12px 24px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(var(--primary-rgb), 0.1);
+    z-index: 100;
+}
+
+.metrics-wrapper {
+    display: flex;
+    gap: 32px;
+    align-items: center;
 }
 
 .metric-item {
     text-align: center;
+    animation: slide-in-up 0.4s var(--ease-out-expo) both;
+}
+
+.metric-item:nth-child(1) {
+    animation-delay: 0.05s;
+}
+
+.metric-item:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.metric-item:nth-child(3) {
+    animation-delay: 0.15s;
+}
+
+.metric-item:nth-child(4) {
+    animation-delay: 0.2s;
 }
 
 .metric-value {
     display: block;
-    font-size: 2rem;
+    font-size: 1.8rem;
     font-weight: 800;
     font-family: var(--font-mono);
-    text-shadow: 0 0 15px currentColor;
+    text-shadow: 0 0 20px currentColor;
+    transition: color var(--transition-normal);
+    line-height: 1.2;
 }
 
 .metric-label {
-    font-size: 0.75rem;
+    font-size: 0.65rem;
     text-transform: uppercase;
     color: var(--text-dim);
-    letter-spacing: 1px;
+    letter-spacing: 1.5px;
+    font-weight: 500;
 }
 
-/* Right Panel */
+/* ─── Right Panel ──────────────────────────────────────────────────────── */
 .right-panel {
     background: var(--bg-panel);
     display: flex;
     flex-direction: column;
-    padding: 20px;
-    gap: 20px;
+    padding: 16px;
+    gap: 14px;
     overflow-y: auto;
+    border-left: 1px solid rgba(255, 255, 255, 0.03);
+    max-height: calc(100vh - 64px);
+    /* Prevent infinite page scroll */
 }
 
-/* Panel Cards */
+/* ─── Panel Cards ──────────────────────────────────────────────────────── */
 .panel-card {
     background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
     padding: 16px;
     position: relative;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: all var(--transition-normal);
+    animation: slide-in-right 0.5s var(--ease-out-expo) both;
+}
+
+.panel-card:nth-child(1) {
+    animation-delay: 0.05s;
+}
+
+.panel-card:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.panel-card:nth-child(3) {
+    animation-delay: 0.15s;
+}
+
+.panel-card:nth-child(4) {
+    animation-delay: 0.2s;
+}
+
+.panel-card:hover {
+    background: var(--bg-card-hover);
+    border-color: rgba(var(--primary-rgb), 0.1);
 }
 
 .panel-card h3 {
-    margin: 0 0 16px 0;
-    font-size: 0.9rem;
+    margin: 0 0 14px 0;
+    font-size: 0.72rem;
     text-transform: uppercase;
     color: var(--text-dim);
-    border-bottom: 1px solid #333;
-    padding-bottom: 8px;
-    letter-spacing: 1px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    padding-bottom: 10px;
+    letter-spacing: 2px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.panel-card h3::before {
+    content: '';
+    width: 3px;
+    height: 14px;
+    background: linear-gradient(180deg, var(--primary), var(--secondary));
+    border-radius: 2px;
+}
+
+/* ─── Persistent Status Bar ────────────────────────────────────────────── */
+.status-bar {
+    width: 100%;
+    height: 38px;
+    box-sizing: border-box;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    transition: all var(--transition-normal);
+    z-index: 20;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    flex-shrink: 0;
+}
+
+.status-bar.secure {
+    background: rgba(var(--primary-rgb), 0.05);
+    color: var(--primary);
+    border-bottom-color: rgba(var(--primary-rgb), 0.15);
+}
+
+.status-bar.warning {
+    background: rgba(var(--alert-yellow-rgb), 0.1);
+    color: var(--alert-yellow);
+    border-bottom-color: rgba(var(--alert-yellow-rgb), 0.3);
+}
+
+.status-bar.danger {
+    background: rgba(var(--alert-red-rgb), 0.12);
+    color: var(--alert-red);
+    border-bottom-color: rgba(var(--alert-red-rgb), 0.4);
+    animation: danger-flash 1.5s ease-in-out infinite;
+}
+
+.status-bar .status-label {
+    opacity: 0.6;
+    letter-spacing: 1.5px;
+}
+
+.status-bar .status-message {
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    width: 250px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ─── Scan Line Effect ─────────────────────────────────────────────────── */
+@keyframes scan {
+    0% {
+        top: 0;
+        opacity: 0;
+    }
+
+    5% {
+        opacity: 0.6;
+    }
+
+    95% {
+        opacity: 0.6;
+    }
+
+    100% {
+        top: 100%;
+        opacity: 0;
+    }
+}
+
+/* ─── AR Overlay Animations ────────────────────────────────────────────── */
+.pulse-anim {
+    animation: pulse-glow 0.8s ease-in-out infinite;
+}
+
+/* ─── Risk Gauge SVG ───────────────────────────────────────────────────── */
+.risk-gauge-bg,
+.risk-gauge-fill {
+    fill: none;
+    stroke-width: 12;
+    stroke-linecap: round;
+}
+
+.risk-gauge-fill {
+    transition: stroke-dashoffset 0.6s var(--ease-out-expo),
+        stroke 0.4s var(--ease-out-expo);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Mobile Responsive Layout (Vertical / Portrait)
+   ═══════════════════════════════════════════════════════════════════════ */
+@media screen and (max-width: 768px),
+screen and (orientation: portrait) {
+
+    /* 1. Header Adjustments */
+    .header {
+        height: 54px;
+        padding: 0 12px;
+    }
+
+    .header-logo {
+        width: 24px;
+        height: 24px;
+        margin-right: 8px;
+    }
+
+    .header h1 {
+        font-size: 0.85rem;
+    }
+
+    .sport-btn {
+        padding: 4px 8px;
+        font-size: 0.65rem;
+    }
+
+    .status-badge {
+        width: 70px;
+        font-size: 0.6rem;
+        padding: 4px 0;
+    }
+
+    /* 2. Main Grid: 100% Video Dominance */
+    .main-grid {
+        display: block;
+        /* Override grid entirely */
+        position: relative;
+        height: calc(100vh - 54px);
+    }
+
+    .video-section {
+        height: 100%;
+        width: 100%;
+        border-right: none;
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+
+    .video-container {
+        height: 100%;
+    }
+
+    .video-container video,
+    .video-container canvas {
+        object-fit: cover;
+        /* Fill the vertical screen completely */
+        height: 100%;
+        width: 100%;
+    }
+
+    /* 3. Tiny Top-Left Video Overlay */
+    .video-overlay {
+        top: 10px;
+        left: 10px;
+        padding: 6px 10px;
+        font-size: 0.6rem;
+    }
+
+    /* 4. Small Floating Alert Panel (Left side) */
+    .right-panel {
+        position: absolute;
+        top: 80px;
+        left: 10px;
+        width: 200px;
+        max-height: 40vh;
+        /* Don't take up the whole left side */
+        padding: 0;
+        background: transparent;
+        border: none;
+        z-index: 50;
+        pointer-events: none;
+        /* Let clicks pass through empty space */
+        overflow-y: hidden;
+    }
+
+    /* Hide the Live Analysis, Player Status, and Risk Trend completely in mobile */
+    .right-panel>.panel-card:not(:nth-child(3)) {
+        display: none;
+    }
+
+    /* Styling purely the Alert Log container */
+    .right-panel>.panel-card:nth-child(3) {
+        background: rgba(18, 18, 28, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 8px;
+        pointer-events: auto;
+        /* Enable touch scroll on alerts */
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .right-panel>.panel-card:nth-child(3) h3 {
+        font-size: 0.65rem;
+        margin-bottom: 8px;
+        padding-bottom: 6px;
+    }
+
+    /* 5. Shrunken Bottom Metrics Bar */
+    .metrics-bar {
+        bottom: 12px;
+        width: 95%;
+        padding: 8px 12px;
+        border-radius: var(--radius-md);
+    }
+
+    .metrics-wrapper {
+        gap: 16px;
+    }
+
+    .metric-value {
+        font-size: 1.2rem;
+        /* Shrunk from 1.8rem */
+    }
+
+    .metric-label {
+        font-size: 0.55rem;
+    }
+
+    #btn-terminate {
+        padding: 6px 14px;
+        font-size: 0.65rem;
+        margin-left: auto;
+    }
+
+    #btn-initialize {
+        padding: 14px 32px !important;
+        font-size: 0.85rem !important;
+    }
 }
