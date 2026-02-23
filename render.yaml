@@ -1,12 +1,12 @@
 services:
   - type: web
-    name: injuryguard-api
-    runtime: docker
-    rootDir: backend
-    repo: https://github.com/AsifKhan-001/InjuryGuard-AI
-    plan: free
-    region: oregon
-    dockerfilePath: ./Dockerfile
+    name: injury-guard-ai
+    env: python
+    buildCommand: bash build.sh
+    startCommand: cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
-      - key: PORT
-        value: 8000
+      - key: PYTHON_VERSION
+        value: 3.10.12
+      - key: VITE_API_URL
+        value: "" # Empty by default, API points to self in unified deployment
+    plan: free # Adjust if necessary on Render Dashboard

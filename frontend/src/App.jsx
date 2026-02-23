@@ -83,6 +83,7 @@ function App() {
   }, [isMuted])
 
   // Connect WebSocket
+  const reconnectAttempts = useRef(0)
   const connectWS = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return
 
@@ -90,6 +91,7 @@ function App() {
 
     ws.onopen = () => {
       setConnected(true)
+      reconnectAttempts.current = 0
       console.log('WebSocket connected')
     }
 
@@ -180,6 +182,19 @@ function App() {
     ws.onclose = () => {
       setConnected(false)
       console.log('WebSocket disconnected')
+
+      // Auto-reconnect if we were manually streaming
+      setStreaming(currentStreaming => {
+        if (currentStreaming) {
+          const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 10000)
+          console.log(`Will attempt reconnect in ${delay}ms...`)
+          setTimeout(() => {
+            reconnectAttempts.current += 1
+            connectWS()
+          }, delay)
+        }
+        return currentStreaming
+      })
     }
 
     ws.onerror = () => {
